@@ -4,14 +4,9 @@ import java.util.HashSet;
 
 public abstract class ProblemExecution {
 
-	public static void init() {
-
-	}
-
 	public static void start(HashSet<Thread> threads, AbstractState state)
 			throws Exception {
 
-		init();
 
 		// start the threads
 		for (Thread t : threads) {

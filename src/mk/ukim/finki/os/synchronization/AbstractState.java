@@ -62,7 +62,14 @@ public abstract class AbstractState {
 	 * @param e
 	 */
 	protected synchronized void logException(PointsException e) {
-		actions.add("\t(e): " + e.getMessage());
+		Thread t = Thread.currentThread();
+		if (e != null) {
+			if (t instanceof TemplateThread) {
+				((TemplateThread) t).setException(e);
+			}
+			TemplateThread.hasException=true;
+			actions.add("\t(e): " + e.getMessage());
+		}
 	}
 
 	/**

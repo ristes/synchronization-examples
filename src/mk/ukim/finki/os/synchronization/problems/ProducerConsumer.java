@@ -19,28 +19,25 @@ public class ProducerConsumer {
 	public static int NUM_RUNS = 10;
 
 	// TODO: definirajte gi semaforite i ostanatite promenlivi ovd
-	static Semaphore empty;
-	static Semaphore[] items;
+	static Semaphore bufferEmpty;
+	static Semaphore itemsFilled[];
 	static final Object bufferAccess = new Object();
 
 	/**
 	 * Metod koj treba da gi inicijalizira vrednostite na semaforite i
 	 * ostanatite promenlivi za sinhronizacija.
-	 *  
+	 * 
 	 * TODO: da se implementira
 	 * 
 	 */
 	public static void init() {
 		int brKonzumeri = state.getBufferCapacity();
-
-		// Inicijalno baferot e prazen
-		empty = new Semaphore(1);
-
-		items = new Semaphore[brKonzumeri];
+		bufferEmpty = new Semaphore(1);
+		itemsFilled = new Semaphore[brKonzumeri];
 		for (int i = 0; i < brKonzumeri; i++) {
-			// inicijalno nema postaveno item vo baferot
-			items[i] = new Semaphore(0);
+			itemsFilled[i] = new Semaphore(0);
 		}
+
 	}
 
 	static class Producer extends TemplateThread {
@@ -51,13 +48,13 @@ public class ProducerConsumer {
 
 		@Override
 		public void execute() throws InterruptedException {
-			empty.acquire();
+			bufferEmpty.acquire();
 			synchronized (bufferAccess) {
 				state.fillBuffer();
-			}
-			// signaliziraj na consumer-ite deka baferot e napolnet
-			for (Semaphore item : items) {
-				item.release();
+				// signaliziraj na consumer-ite deka baferot e napolnet
+				for (int i = 0; i < itemsFilled.length; i++) {
+					itemsFilled[i].release();
+				}
 			}
 		}
 	}
@@ -72,12 +69,14 @@ public class ProducerConsumer {
 
 		@Override
 		public void execute() throws InterruptedException {
-			items[cId].acquire();
+			itemsFilled[cId].acquire();
 			state.getItem(cId);
+			state.decrementNumberOfItemsLeft();
 			synchronized (bufferAccess) {
 				if (state.isBufferEmpty()) {
 					// kazi na producer-ot da napolni buffer
-					empty.release();
+					state.log(null, "buffer fill acquire");
+					bufferEmpty.release();
 				}
 			}
 		}
@@ -93,30 +92,31 @@ public class ProducerConsumer {
 		private int bufferCapacity = 15;
 
 		private BoundCounterWithRaceConditionCheck[] items;
-		private BoundCounterWithRaceConditionCheck counter = new BoundCounterWithRaceConditionCheck(0);
-		private BoundCounterWithRaceConditionCheck raceConditionTester = new BoundCounterWithRaceConditionCheck(0);
+		private BoundCounterWithRaceConditionCheck counter = new BoundCounterWithRaceConditionCheck(
+				0);
+		private BoundCounterWithRaceConditionCheck raceConditionTester = new BoundCounterWithRaceConditionCheck(
+				0);
+		private BoundCounterWithRaceConditionCheck bufferFillCheck = new BoundCounterWithRaceConditionCheck(
+				0, 1, 10, "", null, 0, null);
 
 		public int getBufferCapacity() {
 			return bufferCapacity;
 		}
 
+		private int itemsLeft = 0;
+
 		public State(int capacity) {
 			bufferCapacity = capacity;
 			items = new BoundCounterWithRaceConditionCheck[bufferCapacity];
 			for (int i = 0; i < bufferCapacity; i++) {
-				items[i] = new BoundCounterWithRaceConditionCheck(0, null, 0, null, 0, 10,
-						"Ne moze da se zeme od prazen bafer.");
+				items[i] = new BoundCounterWithRaceConditionCheck(0, null, 0,
+						null, 0, 10, "Ne moze da se zeme od prazen bafer.");
 			}
 		}
 
 		public boolean isBufferEmpty() throws RuntimeException {
 			log(raceConditionTester.incrementWithMax(), "checking buffer state");
-			boolean empty = true;
-			for (int i = 0; i < bufferCapacity; i++) {
-				if (items[i].getValue() != 0) {
-					empty = false;
-				}
-			}
+			boolean empty = (itemsLeft == 0);
 			log(raceConditionTester.decrementWithMin(), null);
 			return empty;
 		}
@@ -127,13 +127,28 @@ public class ProducerConsumer {
 			counter.decrementWithMin(false);
 		}
 
+		public void decrementNumberOfItemsLeft() {
+			counter.incrementWithMax(false);
+			synchronized (this) {
+				itemsLeft--;
+			}
+			counter.decrementWithMin(false);
+		}
+
 		public void fillBuffer() {
-			log(null, "filling buffer");
+			log(bufferFillCheck.incrementWithMax(), "filling buffer");
 			if (isBufferEmpty()) {
 				for (int i = 0; i < bufferCapacity; i++) {
 					items[i].incrementWithMax();
+
 				}
+			} else {
+				logException(new PointsException(10, "Filling non-empty buffer"));
 			}
+			synchronized (this) {
+				itemsLeft = bufferCapacity;
+			}
+			log(bufferFillCheck.decrementWithMin(), null);
 		}
 
 		public void finalize() {
@@ -161,6 +176,8 @@ public class ProducerConsumer {
 			threads.add(p);
 
 			state = new State(brKonzumeri);
+
+			init();
 
 			ProblemExecution.start(threads, state);
 		} catch (Exception ex) {

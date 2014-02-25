@@ -25,6 +25,7 @@ public abstract class TemplateThread extends Thread {
 			// Do nothing
 		} catch (Exception e) {
 			exception = e;
+			e.printStackTrace();
 			hasException = true;
 		}
 	}
