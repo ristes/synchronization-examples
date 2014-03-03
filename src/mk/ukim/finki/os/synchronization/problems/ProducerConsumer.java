@@ -1,5 +1,6 @@
 package mk.ukim.finki.os.synchronization.problems;
 
+import java.awt.ItemSelectable;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.concurrent.Semaphore;
@@ -20,8 +21,8 @@ public class ProducerConsumer {
 
 	// TODO: definirajte gi semaforite i ostanatite promenlivi ovd
 	static Semaphore bufferEmpty;
-	static Semaphore itemsFilled[];
-	static final Object bufferAccess = new Object();
+	static Semaphore[] itemFilled;
+	static final Object bufferAccessMonitor = new Object();
 
 	/**
 	 * Metod koj treba da gi inicijalizira vrednostite na semaforite i
@@ -33,11 +34,10 @@ public class ProducerConsumer {
 	public static void init() {
 		int brKonzumeri = state.getBufferCapacity();
 		bufferEmpty = new Semaphore(1);
-		itemsFilled = new Semaphore[brKonzumeri];
+		itemFilled = new Semaphore[brKonzumeri];
 		for (int i = 0; i < brKonzumeri; i++) {
-			itemsFilled[i] = new Semaphore(0);
+			itemFilled[i] = new Semaphore(0);
 		}
-
 	}
 
 	static class Producer extends TemplateThread {
@@ -49,11 +49,11 @@ public class ProducerConsumer {
 		@Override
 		public void execute() throws InterruptedException {
 			bufferEmpty.acquire();
-			synchronized (bufferAccess) {
+			synchronized (bufferAccessMonitor) {
 				state.fillBuffer();
 				// signaliziraj na consumer-ite deka baferot e napolnet
-				for (int i = 0; i < itemsFilled.length; i++) {
-					itemsFilled[i].release();
+				for (int i = 0; i < itemFilled.length; i++) {
+					itemFilled[i].release();
 				}
 			}
 		}
@@ -69,13 +69,12 @@ public class ProducerConsumer {
 
 		@Override
 		public void execute() throws InterruptedException {
-			itemsFilled[cId].acquire();
+			itemFilled[cId].acquire();
 			state.getItem(cId);
-			state.decrementNumberOfItemsLeft();
-			synchronized (bufferAccess) {
+			synchronized (bufferAccessMonitor) {
+				state.decrementNumberOfItemsLeft();
 				if (state.isBufferEmpty()) {
 					// kazi na producer-ot da napolni buffer
-					state.log(null, "buffer fill acquire");
 					bufferEmpty.release();
 				}
 			}
