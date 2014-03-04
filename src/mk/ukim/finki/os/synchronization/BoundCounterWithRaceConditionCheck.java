@@ -20,6 +20,8 @@ public class BoundCounterWithRaceConditionCheck {
 	private String maxErrorMessage;
 	private String minErrorMessage;
 
+	public static int raceConditionDefaultTime = 3;
+
 	private int max;
 
 	/**
@@ -51,9 +53,9 @@ public class BoundCounterWithRaceConditionCheck {
 	 * @param minErrorMessage
 	 *            message shown when the lower bound constrain is violated
 	 */
-	public BoundCounterWithRaceConditionCheck(int value, Integer maxAllowed, int maxErrorPoints,
-			String maxErrorMessage, Integer minAllowed, int minErrorPoints,
-			String minErrorMessage) {
+	public BoundCounterWithRaceConditionCheck(int value, Integer maxAllowed,
+			int maxErrorPoints, String maxErrorMessage, Integer minAllowed,
+			int minErrorPoints, String minErrorMessage) {
 		super();
 		this.value = value;
 		this.max = value;
@@ -93,7 +95,8 @@ public class BoundCounterWithRaceConditionCheck {
 	 * @return
 	 */
 	public PointsException checkRaceCondition() {
-		return checkRaceCondition(3, RACE_CONDITION_MESSAGE);
+		return checkRaceCondition(raceConditionDefaultTime,
+				RACE_CONDITION_MESSAGE);
 	}
 
 	/**

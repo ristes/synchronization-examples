@@ -7,6 +7,13 @@ public abstract class ProblemExecution {
 	public static void start(HashSet<Thread> threads, AbstractState state)
 			throws Exception {
 
+		startWithoutDeadlock(threads, state);
+
+		checkDeadlock(threads, state);
+	}
+
+	public static void startWithoutDeadlock(HashSet<Thread> threads,
+			AbstractState state) throws Exception {
 
 		// start the threads
 		for (Thread t : threads) {
@@ -18,6 +25,10 @@ public abstract class ProblemExecution {
 			t.join(1000);
 		}
 
+	}
+
+	private static void checkDeadlock(HashSet<Thread> threads,
+			AbstractState state) {
 		// check for deadlock
 		for (Thread t : threads) {
 			if (t.isAlive()) {

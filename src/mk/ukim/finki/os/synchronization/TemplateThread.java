@@ -1,5 +1,7 @@
 package mk.ukim.finki.os.synchronization;
 
+import java.util.Date;
+
 public abstract class TemplateThread extends Thread {
 
 	static boolean hasException = false;
@@ -39,11 +41,11 @@ public abstract class TemplateThread extends Thread {
 	public String toString() {
 		Thread current = Thread.currentThread();
 		if (numRuns > 1) {
-			return String.format("%s\t%d\t%d", ""
+			return String.format("[%d]%s\t%d\t%d", new Date().getTime(), ""
 					+ current.getClass().getSimpleName().charAt(0), getId(),
 					iteration);
 		} else {
-			return String.format("%s\t%d\t", ""
+			return String.format("[%d]%s\t%d\t", new Date().getTime(), ""
 					+ current.getClass().getSimpleName().charAt(0), getId());
 		}
 	}
