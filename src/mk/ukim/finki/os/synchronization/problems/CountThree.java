@@ -30,12 +30,26 @@ public class CountThree {
 	class Counter extends Thread {
 
 		public void count(int[] data) throws InterruptedException {
+			int localCount = 0;
 			for (int i = 0; i < data.length; i++) {
+
 				if (data[i] == 3) {
-					synchronized (lock) {
-						count++;
-					}
+					// ako imame 100 3ki vo nizata data[], 100 pati ke zaklucime
+					// i ke bide premnogu bavno. Ako celata niza e so 3ki, togas
+					// ovoj kod e pobaven odkolku sekventnoto izvrsuvanje
+					/*
+					 * synchronized (lock) { count++; }
+					 */
+
+					// ova e localna promenliva i ne mora da se sinhronizira
+					localCount++;
 				}
+			}
+			// bez razlika kolku 3ki ima vo nizata data[] ke imame samo edno
+			// zaklucuvanje po thread i znacitelno ke se namali vremeto na
+			// cekanje i imame vistinska paralelizacija
+			synchronized (lock) {
+				count += localCount;
 			}
 		}
 

@@ -1,6 +1,5 @@
 package mk.ukim.finki.os.synchronization.problems;
 
-import java.awt.ItemSelectable;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.concurrent.Semaphore;
@@ -19,9 +18,24 @@ public class ProducerConsumer {
 
 	public static int NUM_RUNS = 10;
 
-	// TODO: definirajte gi semaforite i ostanatite promenlivi ovd
+	// TODO: definirajte gi semaforite i ostanatite promenlivi. Mora da se
+	// static
+
+	// semafor koj kazuva deka celiot bafer e prazen t.e.
+	// deka sekoja od stavkite vo baferot e prazna. Sluzi za komunikacija
+	// pomegju prodcer-ot i consumer-ite (za posledniot consumer da mu kaze na
+	// producer-ot deka baferot e ispraznet).
+	// koga baferot ke bide prazen (togas ima 1 permit) i togas producer-ot nema
+	// da blokira.
 	static Semaphore bufferEmpty;
+	// Za sekoja stavka imame poseben semafor koj kazuva dali taa e postavena
+	// (popolneta). Sekoj consumer so ovoj semafor ke proveri dali negovata
+	// stavka e popolneta. Ako ne e, treba da ceka dodeka da se popolni, za da
+	// ne se obide da zeme prazna stavka
 	static Semaphore[] itemFilled;
+	// Monitor koj ke se koristi za pristap do baferot. Sluzi za kontrola na
+	// iskluciv pristap kon baferot, t.e. samo eden da moze da pravi promeni kaj
+	// nego. MORA DA E FINAL!!!
 	static final Object bufferAccessMonitor = new Object();
 
 	/**
@@ -34,6 +48,7 @@ public class ProducerConsumer {
 	public static void init() {
 		int brKonzumeri = state.getBufferCapacity();
 		bufferEmpty = new Semaphore(1);
+		// Inicijalno site stavki se prazni
 		itemFilled = new Semaphore[brKonzumeri];
 		for (int i = 0; i < brKonzumeri; i++) {
 			itemFilled[i] = new Semaphore(0);
@@ -48,7 +63,17 @@ public class ProducerConsumer {
 
 		@Override
 		public void execute() throws InterruptedException {
+			// ako baferot e prazen (imame permit), nema da blokira i ke
+			// prodolzi so negovo polnenje (so metodot fillBuffer). Ako baferot
+			// ne e prazen, ovde ke bide blokiran producer-ot i ke ceka se
+			// dodeka nekoj consumer ne napravi release(), so sto ke kaze deka
+			// baferot e prazen i treba povtorno da se popolni.
 			bufferEmpty.acquire();
+			// stom producerot e ovde, znaci deka baferot e prazen
+
+			// baferot e spodelen resurs i negovoto polnenje ne treba da se
+			// preklopi so nitu edna proverka ili promenana brojot na stavkite
+			// vo nego (povici na isBufferEmpty i decrementNumberOfItemsLeft)
 			synchronized (bufferAccessMonitor) {
 				state.fillBuffer();
 				// signaliziraj na consumer-ite deka baferot e napolnet
@@ -69,10 +94,20 @@ public class ProducerConsumer {
 
 		@Override
 		public void execute() throws InterruptedException {
+			// ceka da mu bide postavena negovata stavka. Ako ne e postavena,
+			// ke ceka dodeka da mu se postavi.
 			itemFilled[cId].acquire();
+			// zemanje na stavkata od baferot. Treba da e nadvor od kriticen
+			// region za da moze paralelno da se zemaat stavkite od strana
+			// razlicni consumer-i.
 			state.getItem(cId);
+
+			// proverkata i modifikacijata na brojot na stavki vo baferot
+			// pristapuvaat do spodeleni resursi i mora da se vo kriticen region
 			synchronized (bufferAccessMonitor) {
+				// kazuva deka ja zemal stavkata
 				state.decrementNumberOfItemsLeft();
+				// ako e posledniot koj ja zema stavkata
 				if (state.isBufferEmpty()) {
 					// kazi na producer-ot da napolni buffer
 					bufferEmpty.release();
@@ -115,7 +150,10 @@ public class ProducerConsumer {
 
 		public boolean isBufferEmpty() throws RuntimeException {
 			log(raceConditionTester.incrementWithMax(), "checking buffer state");
-			boolean empty = (itemsLeft == 0);
+			boolean empty = false;
+			synchronized (this) {
+				empty = (itemsLeft == 0);
+			}
 			log(raceConditionTester.decrementWithMin(), null);
 			return empty;
 		}

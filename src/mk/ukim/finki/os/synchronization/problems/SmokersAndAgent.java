@@ -55,6 +55,7 @@ public class SmokersAndAgent {
 		public void execute() throws InterruptedException {
 			emptyTable.acquire();
 			state.putItems();
+			// notify the waiting persons
 			for (int i = 0; i < 3; i++) {
 				if (waiting[i]) {
 					waiting[i] = false;
@@ -78,11 +79,9 @@ public class SmokersAndAgent {
 			accessTable.acquire();
 			if (state.hasMyItems(type)) {
 				state.consume(type);
-
 				emptyTable.release();
-				// notify the waiting persons
 			} else {
-				// wait
+				// wait until new items are added
 				waiting[type] = true;
 				accessTable.release();
 				wait[type].acquire();

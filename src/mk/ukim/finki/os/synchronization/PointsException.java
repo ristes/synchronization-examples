@@ -1,4 +1,5 @@
 package mk.ukim.finki.os.synchronization;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +23,12 @@ public class PointsException extends RuntimeException {
 	}
 
 	public static void printErrors() {
-		System.out.println("Gi imate slednite greski: ");
-		for (Map.Entry<String, PointsException> e : exceptions.entrySet()) {
-			System.out.println(String.format("[%s] : (-%d)", e.getKey(), e
-					.getValue().getPoints()));
+		if (!exceptions.isEmpty()) {
+			System.out.println("Gi imate slednite greski: ");
+			for (Map.Entry<String, PointsException> e : exceptions.entrySet()) {
+				System.out.println(String.format("[%s] : (-%d)", e.getKey(), e
+						.getValue().getPoints()));
+			}
 		}
 	}
 

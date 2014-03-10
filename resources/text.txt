@@ -1,0 +1,11 @@
+The @PostFilterannotation behaves mostly in the same way as the @PreFilterannotation, by filtering elements 
+from a collection. 
+
+The difference is that @PostFilterannotations are evaluated after the target method returns, 
+and the SpEL expression in the annotation is evaluated against the returned collection from the target method. 
+Note that I’m saying the “returned collection.” 
+
+This is a condition required for the @PostFilterannotation to work. 
+As with the @PreFilterannotation, it applies only to collections and arrays. If the return type is neither of these 
+two, the DefaultMethodSecurityExpressionHandler(which is the one evaluating the expressions) will throw an 
+IllegalArgumentException
