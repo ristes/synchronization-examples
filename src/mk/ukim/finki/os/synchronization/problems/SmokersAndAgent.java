@@ -1,16 +1,12 @@
 package mk.ukim.finki.os.synchronization.problems;
 
-import java.awt.ItemSelectable;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 
 import mk.ukim.finki.os.synchronization.AbstractState;
 import mk.ukim.finki.os.synchronization.BoundCounterWithRaceConditionCheck;
 import mk.ukim.finki.os.synchronization.PointsException;
-import mk.ukim.finki.os.synchronization.ProblemExecution;
 import mk.ukim.finki.os.synchronization.TemplateThread;
 
 /**
@@ -53,10 +49,15 @@ public class SmokersAndAgent {
 
 		@Override
 		public void execute() throws InterruptedException {
+			// ceka da mu kazat deka masata e praza i moze da vleze da ja
+			// popolni
 			emptyTable.acquire();
+			// gi postavuva stavkite
 			state.putItems();
-			// notify the waiting persons
+			// im kazuva na tie sto cekaat da prodolzat
 			for (int i = 0; i < 3; i++) {
+				// proveruvam dali soodvetnio pusac ceka. Ako ne ceka, ne treaba
+				// da go oslobodi.
 				if (waiting[i]) {
 					waiting[i] = false;
 					wait[i].release();
@@ -76,14 +77,26 @@ public class SmokersAndAgent {
 
 		@Override
 		public void execute() throws InterruptedException {
+			// semafor koj regulira dali nekoj moze da vleze i da proveri dali
+			// negovite stavki se postaveni. Ako nikoj ne pristapuva kon masata,
+			// togas ke vleze
 			accessTable.acquire();
+			// proveruva dali negovite satvki se postaveni
 			if (state.hasMyItems(type)) {
 				state.consume(type);
 				emptyTable.release();
 			} else {
-				// wait until new items are added
+
+				// ako ne se postaveni, treba da cekame dodeka agentot ne
+				// postavi novi stavki
+
+				// kazuva deka ceka. Moze da se sluci da nema nikoj koj sto
+				// ceka, i mora da ima mehanizam s okoj ke se kaze koi pusaci
+				// cekaat.
 				waiting[type] = true;
+				// oslobodi ja masata
 				accessTable.release();
+				// cekaj da te povika agentot po postavuavnjeto na stavkite
 				wait[type].acquire();
 			}
 		}
@@ -195,13 +208,14 @@ public class SmokersAndAgent {
 
 			// wait threads to finish
 			for (Thread t : threads) {
-				t.join(1000);
+				t.join(20000);
 			}
 
 			// check for deadlock
 			for (TemplateThread t : threads) {
 				if (t.isAlive()) {
 					t.interrupt();
+					System.out.println("interrupted: " + t);
 					if (t instanceof Smoker) {
 						t.setException(new PointsException(25, "DEADLOCK"));
 					}
@@ -215,6 +229,8 @@ public class SmokersAndAgent {
 
 			// print the status
 			state.printStatus();
+
+			System.out.println(System.currentTimeMillis());
 
 		} catch (Exception ex) {
 			ex.printStackTrace();

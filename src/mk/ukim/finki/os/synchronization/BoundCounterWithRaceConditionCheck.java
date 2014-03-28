@@ -80,11 +80,11 @@ public class BoundCounterWithRaceConditionCheck {
 	 * 
 	 * @return the current value
 	 */
-	public int getValue() {
+	public synchronized int getValue() {
 		return value;
 	}
 
-	public void setValue(int value) {
+	public synchronized void setValue(int value) {
 		this.value = value;
 	}
 

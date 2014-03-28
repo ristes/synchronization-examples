@@ -61,15 +61,24 @@ public class ProducerController {
 			if (numChecks == 0) {
 				accessBuffer.acquire();
 			}
+			// moze da bide i pogolemo od 10
 			numChecks++;
 			lock.release();
+			// Ovde ke pominat max 10. Ste posle desetiot ke cekaat dodeka ne
+			// zavrsi nekoja zapocnatite proverki
 			canCheck.acquire();
 
-			state.check();
+			state.check();// 10 sec
+			// ovoj lock ni e ptrebno zaradi numChecks (shared promenliva) i ne
+			// smee paralelno da se modificira
 			lock.acquire();
 			numChecks--;
+			// zavrsila proverkata
 			canCheck.release();
+			// ako sum posleden koj proveruva
 			if (numChecks == 0) {
+				// oslobodi go pristapot do baferot (za eventualno da moze da se
+				// dodade vo nego
 				accessBuffer.release();
 			}
 			lock.release();
