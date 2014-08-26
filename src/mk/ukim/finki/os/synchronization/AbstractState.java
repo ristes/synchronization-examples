@@ -51,6 +51,7 @@ public abstract class AbstractState {
 		if (e != null) {
 			t.setException(e);
 			actions.add(t.toString() + "\t(e): " + e.getMessage());
+			throw e;
 		} else if (action != null) {
 			actions.add(t.toString() + "\t(a): " + action);
 		}
@@ -67,8 +68,9 @@ public abstract class AbstractState {
 			if (t instanceof TemplateThread) {
 				((TemplateThread) t).setException(e);
 			}
-			TemplateThread.hasException=true;
+			TemplateThread.hasException = true;
 			actions.add("\t(e): " + e.getMessage());
+			throw e;
 		}
 	}
 

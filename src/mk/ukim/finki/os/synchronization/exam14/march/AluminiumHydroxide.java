@@ -112,14 +112,12 @@ public class AluminiumHydroxide {
 
 	public static void run() {
 		try {
-			Scanner s = new Scanner(System.in);
 			int numRuns = 1;
-			int numIterations = 300;
-			s.close();
+			int numScenarios = 300;
 
 			HashSet<Thread> threads = new HashSet<Thread>();
 
-			for (int i = 0; i < numIterations; i++) {
+			for (int i = 0; i < numScenarios; i++) {
 				Oxygen o = new Oxygen(numRuns);
 				Hydrogen h = new Hydrogen(numRuns);
 				threads.add(o);

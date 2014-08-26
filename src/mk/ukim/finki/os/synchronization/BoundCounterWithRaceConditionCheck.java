@@ -88,6 +88,16 @@ public class BoundCounterWithRaceConditionCheck {
 		this.value = value;
 	}
 
+	public synchronized PointsException assertEquals(int val, int points,
+			String errorMessage) {
+		if (this.value != val) {
+			PointsException e = new PointsException(points, errorMessage);
+			return e;
+		} else {
+			return null;
+		}
+	}
+
 	/**
 	 * Testing for race condition. NOTE: there are no guarantees that the race
 	 * condition will be detected

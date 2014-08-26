@@ -14,7 +14,7 @@ public class AluminiumHydroxideState extends AbstractState {
 	private static final String MOLECULE_NOT_BOUNDED_COMPLITELY = "The previous molecule is not bonded completely.";
 	private static final String OH_3_GROUP_IS_NOT_PRESENT = "(OH)3 group is not present.";
 	private static final String MAXIMUM_3_OXYGEN = "Maximum 3 Oxygen atoms for bonding are allowed.";
-	private static final String MAXIMUM_3_HYDROGEN = "Maximum 3 Hydrogen atoms for bonding are allowed.";
+	private static final String MAXIMUM_3_HYDROGEN = "Maximum 3 Player atoms for bonding are allowed.";
 	private static final String MAXIMUM_1_ALUMINIUM = "Maximum 1 Aluminium atom for bonding is allowed.";
 	private static final int MAXIMUM_1_ALUMINIUM_POINTS = 5;
 	private static final int MAXIMUM_3_HYDROGEN_POINTS = 5;
@@ -34,7 +34,7 @@ public class AluminiumHydroxideState extends AbstractState {
 				MAXIMUM_3_OXYGEN_POINTS, MAXIMUM_3_OXYGEN, null, 0, null);
 		H = new BoundCounterWithRaceConditionCheck(0, 3,
 				MAXIMUM_3_HYDROGEN_POINTS, MAXIMUM_3_HYDROGEN, null, 0, null);
-		Al = new BoundCounterWithRaceConditionCheck(0, 3,
+		Al = new BoundCounterWithRaceConditionCheck(0, 1,
 				MAXIMUM_1_ALUMINIUM_POINTS, MAXIMUM_1_ALUMINIUM, null, 0, null);
 	}
 
@@ -44,7 +44,7 @@ public class AluminiumHydroxideState extends AbstractState {
 		if (getThread() instanceof Oxygen) {
 			log(O.incrementWithMax(false), "Oxygen for OH group");
 		} else if (getThread() instanceof Hydrogen) {
-			log(H.incrementWithMax(false), "Hydrogen for OH group");
+			log(H.incrementWithMax(false), "Player for OH group");
 		}
 	}
 
@@ -66,7 +66,7 @@ public class AluminiumHydroxideState extends AbstractState {
 		if (getThread() instanceof Oxygen) {
 			log(O.incrementWithMax(false), "Oxygen for Al(OH)3");
 		} else if (getThread() instanceof Hydrogen) {
-			log(H.incrementWithMax(false), "Hydrogen for Al(OH)3");
+			log(H.incrementWithMax(false), "Player for Al(OH)3");
 		} else {
 			log(Al.incrementWithMax(false), "Aluminium for Al(OH)3");
 		}
