@@ -88,9 +88,27 @@ public class BoundCounterWithRaceConditionCheck {
 		this.value = value;
 	}
 
+	/**
+	 * Throws exception when the val is different than the value of the counter.
+	 * 
+	 * @param val
+	 * @param points
+	 * @param errorMessage
+	 * @return
+	 */
 	public synchronized PointsException assertEquals(int val, int points,
 			String errorMessage) {
 		if (this.value != val) {
+			PointsException e = new PointsException(points, errorMessage);
+			return e;
+		} else {
+			return null;
+		}
+	}
+
+	public synchronized PointsException assertNotEquals(int val, int points,
+			String errorMessage) {
+		if (this.value == val) {
 			PointsException e = new PointsException(points, errorMessage);
 			return e;
 		} else {
