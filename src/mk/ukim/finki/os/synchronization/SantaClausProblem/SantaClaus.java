@@ -8,11 +8,9 @@ import mk.ukim.finki.os.synchronization.TemplateThread;
 
 /**
  * 
- * @author Kiril Pepovski 121102
- * 		   Marija Nikolova 121195
+ * @author Kiril Pepovski 121102 and Marija Nikolova 121195
  *
  */
-
 public class SantaClaus {
 	
 	static int elfCount;
