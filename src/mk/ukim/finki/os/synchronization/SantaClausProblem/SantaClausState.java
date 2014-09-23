@@ -4,6 +4,12 @@ import mk.ukim.finki.os.synchronization.AbstractState;
 import mk.ukim.finki.os.synchronization.PointsException;
 import mk.ukim.finki.os.synchronization.Switcher;
 
+/**
+ * 
+ * @author Kiril Pepovski 121102 and Marija Nikolova 121195
+ *
+ */
+
 public class SantaClausState extends AbstractState {
 
 	private static final String ALL_RAINDEERS_MUST_ARRIVE = "All of the nine reindeers must arrive in order to start hitching";
