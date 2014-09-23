@@ -23,6 +23,7 @@ public class RiverCrossingProblem {
 	//променливи кои ни кажуваат колку луѓе од двете групи моментално стојат покрај бродот и чекаат да се качат
 	static int hackers,serfs;
 	
+	
 	//Во моментот кога може да се формира комбинација која е дозволена
 	//се одлучува на колку луѓе од секоја од групите им се дозволува да се качат на бродот
 	static Semaphore hackersWaiting,serfsWaiting;
@@ -35,6 +36,7 @@ public class RiverCrossingProblem {
 	//Откако сме повикале правилна комбинација од луѓе треба секој прво да повика board() па после тоа последниот
 	//што е дојден и со кого е комплетирана комбинацијата да го повика row_boat()
 	static Semaphore allowToRow;
+
 	static Semaphore allowed;
 	
 	public RiverCrossingProblem(){

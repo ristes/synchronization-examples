@@ -32,6 +32,10 @@ public class RiverCrossingState extends AbstractState {
 	private BoundCounterWithRaceConditionCheck Boat;
 	
 	
+	
+	
+
+	
 	private HashSet<String> combinations;
 	
 	private int hackers =0;
