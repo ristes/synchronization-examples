@@ -5,6 +5,11 @@ import mk.ukim.finki.os.synchronization.BoundCounterWithRaceConditionCheck;
 import mk.ukim.finki.os.synchronization.PointsException;
 import mk.ukim.finki.os.synchronization.Switcher;
 
+/**
+ * 
+ * @author Atanas Dimitrovski
+ *
+ */
 public class SushiBarState extends AbstractState {
 	
 	private static final int MAXIMUM_5_PLAYERS_POINTS = 10;

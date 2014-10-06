@@ -1,3 +1,5 @@
+package mk.ukim.finki.os.synchronization.problems.rollercoaster;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.Semaphore;

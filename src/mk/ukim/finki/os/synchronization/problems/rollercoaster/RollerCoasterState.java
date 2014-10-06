@@ -1,14 +1,13 @@
+package mk.ukim.finki.os.synchronization.problems.rollercoaster;
+
 import mk.ukim.finki.os.synchronization.AbstractState;
 import mk.ukim.finki.os.synchronization.BoundCounterWithRaceConditionCheck;
 import mk.ukim.finki.os.synchronization.PointsException;
 import mk.ukim.finki.os.synchronization.Switcher;
-import mk.ukim.finki.os.synchronization.TemplateThread;
 
 /**
  * 
- * @author kikodamjan
- * hristijan sardzoski
- * damjan gjurovski
+ * @author kikodamjan hristijan sardzoski damjan gjurovski
  * 
  */
 
@@ -37,45 +36,48 @@ public class RollerCoasterState extends AbstractState {
 	private BoundCounterWithRaceConditionCheck car;
 	private BoundCounterWithRaceConditionCheck passengers;
 
-
 	public RollerCoasterState() {
 		car = new BoundCounterWithRaceConditionCheck(0, 1,
 				MAXIMUM_1_CAR_POINTS, MAXIMUM_1_CAR, null, 0, null);
 		passengers = new BoundCounterWithRaceConditionCheck(0, 10,
 				MAXIMUM_10_PEOPLE_POINTS, MAXIMUM_10_PEOPLE, null, 0, null);
-		
+
 	}
 
 	public void board() {
 		synchronized (this) {
-				log(car.assertEquals(1, BOARD_BEFORE_LOAD_POINTS,BOARD_BEFORE_LOAD),"Car ready");
-				log(passengers.incrementWithMax(false),
-						"One passenger for the car");
-				Switcher.forceSwitch(5);
+			log(car.assertEquals(1, BOARD_BEFORE_LOAD_POINTS, BOARD_BEFORE_LOAD),
+					"Car ready");
+			log(passengers.incrementWithMax(false), "One passenger for the car");
+			Switcher.forceSwitch(5);
 		}
 	}
 
 	public void unboard() {
 		synchronized (this) {
-				log(car.assertEquals(0, UNBOARD_BEFORE_UNLOAD_POINTS, UNBOARD_BEFORE_UNLOAD),null);
-				log(passengers.decrementWithMin(false),
-						"One passenger left the car");
-				Switcher.forceSwitch(5);
+			log(car.assertEquals(0, UNBOARD_BEFORE_UNLOAD_POINTS,
+					UNBOARD_BEFORE_UNLOAD), null);
+			log(passengers.decrementWithMin(false),
+					"One passenger left the car");
+			Switcher.forceSwitch(5);
 		}
 	}
 
 	public void load() {
 		synchronized (this) {
-				log(car.assertEquals(0, LOAD_BEFORE_UNLOAD_POINTS,LOAD_BEFORE_UNLOAD),null);
-				log(car.incrementWithMax(false), "Car acquired");
+			log(car.assertEquals(0, LOAD_BEFORE_UNLOAD_POINTS,
+					LOAD_BEFORE_UNLOAD), null);
+			log(car.incrementWithMax(false), "Car acquired");
 		}
 	}
 
 	public void run() {
 		synchronized (this) {
-				log(passengers.assertEquals(10, RUN_BEFORE_10_BOARD_POINTS, RUN_BEFORE_10_BOARD), "Starting the ride");
-				log(car.assertEquals(1, MAXIMUM_1_CAR_POINTS, MAXIMUM_1_CAR),"Car is ready");
-				Switcher.forceSwitch(5);
+			log(passengers.assertEquals(10, RUN_BEFORE_10_BOARD_POINTS,
+					RUN_BEFORE_10_BOARD), "Starting the ride");
+			log(car.assertEquals(1, MAXIMUM_1_CAR_POINTS, MAXIMUM_1_CAR),
+					"Car is ready");
+			Switcher.forceSwitch(5);
 		}
 	}
 
@@ -88,18 +90,20 @@ public class RollerCoasterState extends AbstractState {
 
 	public void validate() {
 		synchronized (this) {
-			if(car.getMax()==1 && car.getValue()==0 && passengers.getMax()==10 && passengers.getValue()==0){
+			if (car.getMax() == 1 && car.getValue() == 0
+					&& passengers.getMax() == 10 && passengers.getValue() == 0) {
 				reset();
 				log(null, "Car ride finished successfully");
-				
-			} else if (passengers.getMax()==10 && car.getMax()==1 && (passengers.getValue()!=0 || car.getValue()!=0)){
+
+			} else if (passengers.getMax() == 10 && car.getMax() == 1
+					&& (passengers.getValue() != 0 || car.getValue() != 0)) {
 				log(new PointsException(CAR_RIDE_NOT_FINNISHED_POINTS,
 						CAR_RIDE_NOT_FINNISHED), null);
-				
+
 			} else {
 				log(new PointsException(DONE_SHOULD_CALLED_ONCE_POINTS,
 						DONE_SHOULD_CALLED_ONCE), null);
-				
+
 			}
 		}
 	}
