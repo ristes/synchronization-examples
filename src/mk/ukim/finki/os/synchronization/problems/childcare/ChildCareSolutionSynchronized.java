@@ -38,6 +38,7 @@ public class ChildCareSolutionSynchronized {
 		public void execute() throws InterruptedException {
 			
 			state.adultEntered();
+			state.adultInside();
 			state.adultLeaving();
 
 			mutex.acquire();
@@ -70,6 +71,11 @@ public class ChildCareSolutionSynchronized {
 
 		@Override
 		public void execute() throws InterruptedException {
+			
+			state.childrenEntered();
+			state.childInside();
+			state.childrenLeave();
+			
 			mutex.acquire();
 
 			if (state.children < 3 * state.adults) {
@@ -80,7 +86,7 @@ public class ChildCareSolutionSynchronized {
 				mutex.release();
 				childQueue.acquire();
 			}
-			state.childInside();
+			
 			mutex.acquire();
 			state.childLeft();
 
