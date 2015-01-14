@@ -4,9 +4,10 @@
  * and open the template in the editor.
  */
 
-package childcareproblem_testing;
+package mk.ukim.finki.os.synchronization.problems.childcare;
 
-import static java.lang.Integer.max;
+import mk.ukim.finki.os.synchronization.AbstractState;
+import mk.ukim.finki.os.synchronization.PointsException;
 
 /**
  *
