@@ -43,13 +43,13 @@ public class ChildCareSolutionSynchronized {
 			mutex.acquire();
 			state.adultEntered();
 			
-			if (state.childrenEntering > 0) {
-			
+			if (state.childrenEntering > 0) {			
 				int n = Math.min(3, state.childrenEntering);
 				state.childrenEntered(n);
 				childQueue.release(n);
 			}
 			mutex.release();
+			state.adultInside();
 			mutex.acquire();
 
 			if (state.children <= 3 * (state.adults - 1)) {
@@ -80,6 +80,7 @@ public class ChildCareSolutionSynchronized {
 				mutex.release();
 				childQueue.acquire();
 			}
+			state.childInside();
 			mutex.acquire();
 			state.childLeft();
 
