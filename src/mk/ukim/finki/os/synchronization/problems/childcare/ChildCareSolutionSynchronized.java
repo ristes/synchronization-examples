@@ -4,131 +4,178 @@
  * and open the template in the editor.
  */
 
-package mk.ukim.finki.os.synchronization.problems.childcare;
+package childcareproblem_testing;
 
+import static java.lang.Integer.min;
 import java.util.HashSet;
 import java.util.concurrent.Semaphore;
-
-import mk.ukim.finki.os.synchronization.ProblemExecution;
-import mk.ukim.finki.os.synchronization.TemplateThread;
 
 /**
  *
  * @author Nikolina
  */
-public class ChildCareSolutionSynchronized {
-	public static Semaphore adultQueue;
-	public static Semaphore childQueue;
 
-	public static Semaphore mutex;
+// Sihronizirano resenie.
+public class ChildCareSolution_Synchronized {
+    public static Semaphore adultQueue;
+    public static Semaphore childQueue;
 
-	public static void init() {
-		adultQueue = new Semaphore(100);
-		childQueue = new Semaphore(100);
+    public static Semaphore mutex;
 
-		mutex = new Semaphore(1);
+
+
+    public static void init()
+    {
+        adultQueue = new Semaphore(20);
+        childQueue = new Semaphore(20);
+
+        mutex = new Semaphore(1);
+    }
+
+
+
+    // Nitka za vospituvac.
+    public static class Adult extends TemplateThread
+    {
+        public Adult(int numberOfRuns)
+        {
+            super(numberOfRuns);
+        }
+
+        @Override
+	public void execute() throws InterruptedException {
+            // Kod za vleguvanje na vospituvacot.
+            mutex.acquire();
+
+           
+            // Vospituvacot vleguva - ne vrsime proverki, vospituvacot moze da vleze bilo koga.
+            state.adultEntered();
+            // ako ima deca sto cekaat da vlezat...
+            if(state.childrenEntering> 0)
+            {
+                // moze da vlezat max 3 deca...
+                int n = min(3, state.childrenEntering);
+                
+                // Im se dozvoluva na n deca koi cekaat da vlezat, zatoa sto vlegol uste eden vospituvac.
+                state.childrenEntered(n);
+                childQueue.release(n);
+            }
+
+            mutex.release();
+
+            // Kriticen region.
+
+            // Kod za izleguvanje na vospituvacot.
+            mutex.acquire();
+
+            // Ako ima dovolno vospituvaci za da gi cuvaat decata...
+            if(state.children <= 3 * (state.adults - 1))
+            {
+                // Vospituvacot izleguva.
+                state.adultLeft();
+                mutex.release();
+            }
+            // Ako nema dovolno vospituvaci za da gi cuvaat decata...
+            else
+            {
+               
+                // Vospituvacot ne moze da izleze, se stava vo redicata na vosp. koi cekaat da izlezat.
+                state.adultLeaving();
+                mutex.release();
+                adultQueue.acquire();
+            }
 	}
+    }
 
-	public static class Adult extends TemplateThread {
-		public Adult(int numberOfRuns) {
-			super(numberOfRuns);
-		}
 
-		@Override
-		public void execute() throws InterruptedException {
-			
-			state.adultEntered();
-			state.adultInside();
-			state.adultLeaving();
 
-			mutex.acquire();
-			state.adultEntered();
-			
-			if (state.childrenEntering > 0) {			
-				int n = Math.min(3, state.childrenEntering);
-				state.childrenEntered(n);
-				childQueue.release(n);
-			}
-			mutex.release();
-			state.adultInside();
-			mutex.acquire();
+    // Nitka za dete.
+    public static class Child extends TemplateThread
+    {
+        public Child(int numberOfRuns)
+        {
+            super(numberOfRuns);
+        }
 
-			if (state.children <= 3 * (state.adults - 1)) {
-				state.adultLeft();
-				mutex.release();
-			} else {
-				state.adultLeaving();
-				mutex.release();
-				adultQueue.acquire();
-			}
-		}
+        @Override
+	public void execute() throws InterruptedException {
+            // Kod za vleguvanje na deteto.
+            mutex.acquire();
+
+           
+            // Ako ima dovolno vospituvaci za decata koi se vnatre i deteto koe saka da vleze....
+            if(state.children < 3 * state.adults)
+            {
+                // Deteto vleguva
+                state.childrenEntered(1);
+                mutex.release();
+            }
+            else
+            // Ako bi nemalo dovolno vospituvaci dokolku bi vleglo deteto, koi se vnatre i deteto koe saka da vleze.
+            {
+            
+                // Deteto ne moze da vleze, se stava vo redicata na deca koi cekaat da vlezat.
+                state.childEntering();
+                mutex.release();
+                childQueue.acquire();
+            }
+
+            // Kriticen region
+
+            // Kod za izleguvanje na deteto
+            mutex.acquire();
+
+            // Deteto izleguva-ne vrsime proverki, deteto moze da izleze bilo koga.
+    
+            state.childLeft();
+
+            // Ako ima vospituvaci koi cekaat da izlezat i pritoa ima dovolno
+            // vospituvaci za decata, otkako si otislo edno dete...
+            if((state.adultsLeaving > 0) && state.children <= 3 * (state.adults - 1))
+            {
+                // Mu se dozvoluva na eden vospituvac da izleze, zatoa sto 
+                // otkako si otislo edno dete ima dovolno vospituvaci.
+                state.adultLeft();
+                adultQueue.release();
+            }
+
+            mutex.release();
 	}
+    }
 
-	public static class Child extends TemplateThread {
-		public Child(int numberOfRuns) {
-			super(numberOfRuns);
-		}
 
-		@Override
-		public void execute() throws InterruptedException {
-			
-			state.childrenEntered();
-			state.childInside();
-			state.childrenLeave();
-			
-			mutex.acquire();
 
-			if (state.children < 3 * state.adults) {
-				state.childrenEntered(1);
-				mutex.release();
-			} else {
-				state.childEntering();
-				mutex.release();
-				childQueue.acquire();
-			}
-			
-			mutex.acquire();
-			state.childLeft();
+    static ChildCareState state = new ChildCareState();
 
-			if ((state.adultsLeaving > 0)
-					&& state.children <= 3 * (state.adults - 1)) {
-				state.adultLeft();
-				adultQueue.release();
-			}
 
-			mutex.release();
-		}
-	}
 
-	static ChildCareState state = new ChildCareState();
+    public static void main(String[] args) {
 
-	public static void main(String[] args) {
+        for (int i = 1; i <= 10; i++) {
+            System.out.println("Run: " + i);
+            run();
+        }
+    }
 
-		for (int i = 1; i <= 10; i++) {
-			System.out.println("Run: " + i);
-			run();
-		}
-	}
 
-	public static void run() {
-		try {
-			int numChildren = 100;
-			HashSet<Thread> threads = new HashSet<>();
-			ChildCareSolutionSynchronized.Adult adult = new ChildCareSolutionSynchronized.Adult(
-					(numChildren / 3) + 10);
-			threads.add(adult);
 
-			for (int i = 0; i < numChildren; i++) {
-				ChildCareSolutionSynchronized.Child child = new ChildCareSolutionSynchronized.Child(
-						1);
-				threads.add(child);
-			}
+    public static void run() {
+        try {
+            int numChildren = 20;
+            HashSet<Thread> threads = new HashSet<>();
+            ChildCareSolution_Synchronized.Adult adult = new ChildCareSolution_Synchronized.Adult((numChildren / 3) + 10);
+            threads.add(adult);
 
-			init();
+            for (int i = 0; i < numChildren; i++) {
+                ChildCareSolution_Synchronized.Child child = new ChildCareSolution_Synchronized.Child(1);
+                threads.add(child);
+            }
 
-			ProblemExecution.start(threads, state);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            init();
+
+            ProblemExecution.start(threads, state);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
