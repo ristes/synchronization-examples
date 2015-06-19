@@ -93,7 +93,11 @@ public abstract class AbstractState {
 	 * Prints the status of the execution, with the exceptions that has occur
 	 */
 	public void printStatus() {
-		finalize();
+		try {
+			finalize();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (!TemplateThread.hasException) {
 			int poeni = 25;
 			if (PointsException.getTotalPoints() == 0) {
