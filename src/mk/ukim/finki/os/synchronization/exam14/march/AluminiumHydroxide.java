@@ -2,7 +2,6 @@ package mk.ukim.finki.os.synchronization.exam14.march;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 
 import mk.ukim.finki.os.synchronization.ProblemExecution;

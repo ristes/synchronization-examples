@@ -20,8 +20,8 @@ public class CalciumNitride {
 	static Semaphore caHere;
 	static Semaphore ready;
 
-	static Semaphore done;
-	static Semaphore next;
+	static Semaphore bondingDone;
+	static Semaphore canLeave;
 
 	public static void init() {
 		caNum = 0;
@@ -34,8 +34,8 @@ public class CalciumNitride {
 		caHere = new Semaphore(0);
 		ready = new Semaphore(0);
 
-		done = new Semaphore(0);
-		next = new Semaphore(0);
+		bondingDone = new Semaphore(0);
+		canLeave = new Semaphore(0);
 
 	}
 
@@ -51,22 +51,24 @@ public class CalciumNitride {
 			lock.acquire();
 			caNum++;
 			if (caNum == 3) {
+				// tret ca atom
 				caNum = 0;
 				lock.release();
 				nHere.acquire(2);
-				caHere.acquire(2);
+//				caHere.acquire(2);
 				ready.release(4);
 				state.bond();
-				done.acquire(4);
-				next.release(4);
+				bondingDone.acquire(4);
+				canLeave.release(4);
 				state.validate();
 			} else {
+				// prv i vtor ca atom
+//				caHere.release();
 				lock.release();
-				caHere.release();
-				ready.acquire();
+				ready.acquire();// x2 ca atoms 
 				state.bond();
-				done.release();
-				next.acquire();
+				bondingDone.release();
+				canLeave.acquire();
 			}
 			ca.release();
 		}
@@ -83,10 +85,10 @@ public class CalciumNitride {
 		public void execute() throws InterruptedException {
 			n.acquire();
 			nHere.release();
-			ready.acquire();
+			ready.acquire(); // x2 n atoms 
 			state.bond();
-			done.release();
-			next.acquire();
+			bondingDone.release();
+			canLeave.acquire();
 			n.release();
 		}
 

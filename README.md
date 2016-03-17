@@ -1,4 +1,0 @@
-synchronization-examples
-========================
-
-synchronization-examples
